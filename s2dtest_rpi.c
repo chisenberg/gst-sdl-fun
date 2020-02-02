@@ -1,7 +1,7 @@
 #include <simple2d.h> // Simple2D
 #include <stdio.h> // sprintf
 #include <gst/gst.h>
-
+#include <pthread.h>
 // gcc s2dtest_rpi.c -lsimple2d -I/usr/include/SDL2 -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -D_REENTRANT -L/usr/lib -Wl,-rpath=/opt/vc/lib -Wl,--enable-new-dtags -lSDL2 -lm -I/opt/vc/include/ -L/opt/vc/lib -lGLESv2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf `pkg-config --cflags --libs gstreamer-1.0` -o s2dtest
 
 // gcc s2dtest_rpi.c `simple2d --libs` `pkg-config --cflags --libs gstreamer-1.0` -o s2dtest
@@ -19,9 +19,8 @@ const char *font = "media/UbuntuMono-R.ttf";
 // para o gstreamer
 GstElement *pipeline, *source, *sink, *rate;
 GstCaps *caps;
-
-gint width, height;
 GstSample *sample;
+gint width, height;
 gchar *descr;
 GError *error = NULL;
 gint64 duration, position;
@@ -29,10 +28,7 @@ GstStateChangeReturn ret;
 gboolean res;
 GstMapInfo map;
 
-Uint32 lastTime = 0;
-gint64 lastFrameCount = 0;
-
-float currentFps = 0;
+int new_sample = 0;
 
 S2D_Image *S2D_CreateImageGST(int width, int heigth) {
   
@@ -83,6 +79,43 @@ void load () {
 
 }
 
+void updateTexture() {
+
+	g_signal_emit_by_name (sink, "pull-sample", &sample, NULL);
+
+	/* if we have a buffer now, convert it to a pixbuf */
+	if (sample) {
+
+		GstBuffer *buffer;
+		GstCaps *caps;
+		GstStructure *s;
+
+		/* get the caps structure */
+		caps = gst_sample_get_caps (sample);
+		s = gst_caps_get_structure (caps, 0);
+		gst_structure_get_int (s, "width", &width);
+		gst_structure_get_int (s, "height", &height);
+
+		/* get the pixbuf */
+		buffer = gst_sample_get_buffer (sample);
+
+		if (gst_buffer_map (buffer, &map, GST_MAP_READ)) {
+			glBindTexture(GL_TEXTURE_2D, gst_s2d_image->texture_id);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1280, 720, GL_RGB, GL_UNSIGNED_BYTE, map.data);
+			gst_buffer_unmap (buffer, &map);
+		} else {
+			printf ("could not map\n");
+		}
+
+		gst_sample_unref (sample);
+
+	}
+}
+
+static GstFlowReturn new_sample_signal (GstElement *sink, void *data) {
+	new_sample = 1;
+	return GST_FLOW_OK;
+}
 int initGST2() {
 
     /* Create the elements */
@@ -132,7 +165,7 @@ int initGST() {
 	! image/jpeg,width=1280,height=720,framerate=30/1 \
 	! videorate name=rate ! image/jpeg,width=1280,height=720,framerate=30/1 ! jpegdec ! queue \
    	! videoconvert ! video/x-raw,width=1280,height=720,format=RGB,pixel-aspect-ratio=1/1 \
-    ! appsink max-buffers=5 drop=1 wait-on-eos=false emit-signals=true name=sink", NULL);
+    ! appsink max-buffers=1 drop=1 wait-on-eos=false emit-signals=true name=sink", NULL);
     
 	//source = gst_bin_get_by_name(GST_BIN(pipeline), "source");
 	sink = gst_bin_get_by_name(GST_BIN(pipeline), "sink");
@@ -142,6 +175,9 @@ int initGST() {
 		g_printerr ("Not all elements could be created.\n");
 		return -1;
 	}
+
+	// configure callback
+	g_signal_connect (sink, "new-sample", G_CALLBACK (new_sample_signal), 0);
 	
 	/* get the preroll buffer from appsink */
     gst_element_set_state (pipeline, GST_STATE_PAUSED);
@@ -149,59 +185,32 @@ int initGST() {
 	
 }
 
-void updateTexture() {
-
-	g_signal_emit_by_name (sink, "pull-sample", &sample, NULL);
-
-	/* if we have a buffer now, convert it to a pixbuf */
-	if (sample) {
-
-		GstBuffer *buffer;
-		GstCaps *caps;
-		GstStructure *s;
-
-		/* get the caps structure */
-		caps = gst_sample_get_caps (sample);
-		s = gst_caps_get_structure (caps, 0);
-		gst_structure_get_int (s, "width", &width);
-		gst_structure_get_int (s, "height", &height);
-
-		/* get the pixbuf */
-		buffer = gst_sample_get_buffer (sample);
-
-		if (gst_buffer_map (buffer, &map, GST_MAP_READ)) {
-			glBindTexture(GL_TEXTURE_2D, gst_s2d_image->texture_id);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1280, 720, GL_RGB, GL_UNSIGNED_BYTE, map.data);
-			gst_buffer_unmap (buffer, &map);
-		} else {
-			printf ("could not map\n");
-		}
-
-		gst_sample_unref (sample);
-
-	} else {
-		printf ("could not make snapshot\n");
-	}
-}
-
 // função de desenho, é chamada na mesma frequência que o fps (ex 30fps)
 void render () {
-     S2D_DrawImage(gst_s2d_image);
-     S2D_DrawImage(button);
+
+	if(new_sample){
+		updateTexture();
+		new_sample = 0;
+	}
+	// updateTexture();
+
+	S2D_DrawImage(gst_s2d_image);
 	
 	S2D_DrawQuad(0, 0, 0, 1, 1, 0.5f,
-            480, 0, 0, 1, 1, 0.5f,
-            480, 320, 0, 1, 1, 0.5f,
-            0, 320, 0, 1, 1, 0.5f);
+		480, 0, 0, 1, 1, 0.5f,
+		480, 320, 0, 1, 1, 0.5f,
+		0, 320, 0, 1, 1, 0.5f);
+		
+	S2D_DrawImage(button);
 	S2D_DrawText(txt_msg);
-
-	// call once to pull gst frame
-	updateTexture();
 }
 
 // função de lógica, é chamada mais vezes que a render
 void update() {
-	// updateTexture();
+	// if(new_sample){
+	// 	updateTexture();
+	// 	new_sample = 0;
+	// }
 }
 
 
@@ -212,7 +221,7 @@ int main ( int argc, char **argv ) {
     // carrega recursos
 	load();
 
-    initGST();
+	initGST();
 
 	S2D_Diagnostics(true);
 	// carrega Simple2D

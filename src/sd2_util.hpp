@@ -1,7 +1,10 @@
 #ifndef S2D_INFO
 #include <simple2d.h>
-#endif
 #include <SDL2/SDL.h>
+#endif
+
+#ifndef __S2D_UTIL__
+#define __S2D_UTIL__
 
 S2D_Image *S2D_CreateEmptyImage(int width, int height) {
   
@@ -43,7 +46,7 @@ void S2D_DrawTextShadow(S2D_Text *txt) {
 		TTF_SetFontOutline(txt->font_data, outline_size); 
 		TTF_SizeText(txt->font_data, txt->msg, &txt->width, &txt->height);
 		SDL_Surface *bg_surface = TTF_RenderText_Blended(txt->font_data, txt->msg, shadow_color);
-		SDL_Rect rect = {outline_size, outline_size, fg_surface->w, fg_surface->h}; 
+		SDL_Rect rect = {outline_size, outline_size, bg_surface->w, bg_surface->h}; 
 
 		/* blit foreground into background */
 		SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND); 
@@ -63,3 +66,5 @@ void S2D_DrawTextShadow(S2D_Text *txt) {
 
 	S2D_GL_DrawText(txt);
 }
+
+#endif

@@ -2,6 +2,7 @@
 #include <stdio.h> // sprintf
 #include "src/sd2_util.hpp"
 #include "src/video_cap.hpp"
+#include "src/tests.hpp"
 
 // gcc s2dtest_rpi.c -lsimple2d -I/usr/include/SDL2 -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -D_REENTRANT -L/usr/lib -Wl,-rpath=/opt/vc/lib -Wl,--enable-new-dtags -lSDL2 -lm -I/opt/vc/include/ -L/opt/vc/lib -lGLESv2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf `pkg-config --cflags --libs gstreamer-1.0` -o s2dtest
 
@@ -12,10 +13,14 @@ S2D_Image  *gst_s2d_image;
 S2D_Image  *button;
 
 S2D_Text   *txt_msg;
+S2D_Text   *gauge_text;
+
 const char *font = "media/UbuntuMono-R.ttf";
 // const char *font = "media/telegren.ttf";
 
 VideoCap *video_cap;
+
+float gauge_counter = 0;
 
 // carrega os recursos
 void load () {
@@ -23,14 +28,18 @@ void load () {
 	gst_s2d_image = S2D_CreateEmptyImage(1280,720);
 
 	txt_msg = S2D_CreateText(font, "Testando texto 1234% ! [/chdata]", 20);
+	
+	gauge_text = S2D_CreateText(font, "", 24);
 	txt_msg->x = 50;
-	txt_msg->y = 500;
+	txt_msg->y = 50;
 	txt_msg->color.r = 0;
 	txt_msg->color.g = 1;
 	txt_msg->color.b = 1;
 
 	gst_s2d_image->width = 1280;
 }
+
+
 
 // Simple2D render function
 void render () {
@@ -46,8 +55,13 @@ void render () {
 		1280, 720,	color, color, color, 1
 	);
 		
-	S2D_DrawImage(button);
+	// S2D_DrawImage(button);
 	S2D_DrawTextShadow(txt_msg);
+	
+
+	drawVerticalGauge(gauge_counter,5,200,360, gauge_text, SDL_Color{1,1,1});
+
+	gauge_counter += 0.05;
 
 }
 

@@ -20,6 +20,4 @@ public:
 	VideoCap(int width, int heigth);
 };
 
-
-
 #endif

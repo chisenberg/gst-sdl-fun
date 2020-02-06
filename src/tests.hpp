@@ -44,14 +44,14 @@ void drawVerticalGauge(int value, int step, int x_center, int y_center, S2D_Text
 	 * 
 	 */
 
-	int iterator = value + 15;
+	int iterator = value + 20;
 	int y_pos = 0;
 	text->color.r = color.r;
 	text->color.g = color.g;
 	text->color.b = color.b;
 	tick->x = x_center;
 
-	for (int i=-15; i<15; i++) {
+	for (int i=-20; i<20; i++) {
 		// if is a multiple of step
 		is_double = iterator%step == 0 ? 1 : 0;
 		// calculate Y step position

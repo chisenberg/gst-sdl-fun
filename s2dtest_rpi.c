@@ -27,7 +27,7 @@ float gauge_counter = 0;
 void load () {
 	button = S2D_CreateImage("media/button.png");
 	tick = S2D_CreateImage("media/tick.png");
-	gst_s2d_image = S2D_CreateEmptyImage(1280,720);
+	gst_s2d_image = S2D_CreateEmptyImage(640,480);
 
 	txt_msg = S2D_CreateText(font, "Testando texto 1234! [/chdata]", 20);
 	// S2D_DrawTextShadow(txt_msg);
@@ -42,7 +42,8 @@ void load () {
 	txt_msg->color.g = 1;
 	txt_msg->color.b = 1;
 
-	// gst_s2d_image->width = 1280;
+	gst_s2d_image->width = 640;
+	gst_s2d_image->height = 540;
 }
 
 
@@ -50,15 +51,28 @@ void load () {
 // Simple2D render function
 void render () {
 	
+	gst_s2d_image->x = 0;
+	gst_s2d_image->y = 0;
 	S2D_DrawImage(gst_s2d_image);
-	
+	gst_s2d_image->x = 640;
+	S2D_DrawImage(gst_s2d_image);
+	gst_s2d_image->x = 1280;
+	S2D_DrawImage(gst_s2d_image);
+	gst_s2d_image->x = 0;
+	gst_s2d_image->y = 540;
+	S2D_DrawImage(gst_s2d_image);
+	gst_s2d_image->x = 640;
+	S2D_DrawImage(gst_s2d_image);
+	gst_s2d_image->x = 1280;
+	S2D_DrawImage(gst_s2d_image);
+
 	GLfloat color = 0.2f;
-	S2D_DrawQuad(
-		1280, 0, 	color, color, color, 1,
-		1366, 0, 	color, color, color, 1,
-		1366, 720,	color, color, color, 1,
-		1280, 720,	color, color, color, 1
-	);
+	// S2D_DrawQuad(
+	// 	1280, 0, 	color, color, color, 1,
+	// 	1366, 0, 	color, color, color, 1,
+	// 	1366, 720,	color, color, color, 1,
+	// 	1280, 720,	color, color, color, 1
+	// );
 		
 	// S2D_DrawImage(button);
 	
@@ -83,10 +97,10 @@ int main ( int argc, char **argv ) {
 	gst_init(&argc, &argv);
 
 	load();
-	video_cap = new VideoCap(1280,720);
+	video_cap = new VideoCap(640,480);
 
 	S2D_Diagnostics(true);
-    window = S2D_CreateWindow("", 1366, 768, update, render, S2D_FULLSCREEN);
+    window = S2D_CreateWindow("", 1920, 1080, update, render, S2D_FULLSCREEN);
     window->viewport.mode = S2D_FIXED;
     window->fps_cap = 30;
 	window->vsync = false;

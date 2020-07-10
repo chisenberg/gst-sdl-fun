@@ -6,7 +6,7 @@
 
 // g++ s2dtest_rpi.c src/video_cap.cpp -I/usr/include/SDL2 -D_REENTRANT -Wl,-rpath=/opt/vc/lib -lGLESv2 -lsimple2d -L/usr/lib -pthread -lSDL2 -lGL -lm -lSDL2_image -lSDL2_mixer -lSDL2_ttf `pkg-config --cflags --libs gstreamer-1.0` -o s2dtest
 
-// gcc s2dtest_rpi.c `simple2d --libs` `pkg-config --cflags --libs gstreamer-1.0` -o s2dtest
+// g++ s2dtest_rpi.c src/video_cap.cpp `simple2d --libs` `pkg-config --cflags --libs gstreamer-1.0` -o s2dtest
 
 S2D_Window *window;
 S2D_Image  *gst_s2d_image;
@@ -100,11 +100,11 @@ int main ( int argc, char **argv ) {
 	video_cap = new VideoCap(640,480);
 
 	S2D_Diagnostics(true);
-    window = S2D_CreateWindow("", 1920, 1080, update, render, S2D_FULLSCREEN);
+    window = S2D_CreateWindow("", 1280, 720, update, render, S2D_BORDERLESS);
     window->viewport.mode = S2D_FIXED;
     window->fps_cap = 30;
 	window->vsync = false;
-	S2D_ShowCursor(false);
+	S2D_ShowCursor();
 	
 	// inicia interface e bloqueia
 	S2D_Show(window);

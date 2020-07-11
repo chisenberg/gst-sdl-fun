@@ -13,11 +13,10 @@ VideoCap::VideoCap(int width, int height)
 	this->width = width;
 	this->height = height;
 
-	GstElement *pipeline = gst_parse_launch ("v4l2src device=/dev/video2 \
-	! image/jpeg,width=1280,height=720,framerate=30/1 \
-	! videorate name=rate ! image/jpeg,width=1280,height=720,framerate=30/1 ! jpegdec ! queue \
-	! videoconvert ! video/x-raw,width=1280,height=720,format=RGB,pixel-aspect-ratio=1/1 \
-	! appsink max-buffers=1 drop=1 wait-on-eos=false emit-signals=true name=sink", NULL);
+	GstElement *pipeline = gst_parse_launch ("v4l2src device=/dev/video0 \
+	! image/jpeg,width=640,height=480,framerate=30/1 ! jpegdec \
+	! videoconvert ! video/x-raw,width=640,height=480,format=RGB,pixel-aspect-ratio=1/1 \
+	! appsink max-buffers=1 drop=1 wait-on-eos=false sync=false emit-signals=true name=sink", NULL);
 
 	this->sink = gst_bin_get_by_name(GST_BIN(pipeline), "sink");
 	// GstElement *rate = gst_bin_get_by_name(GST_BIN(pipeline), "rate");

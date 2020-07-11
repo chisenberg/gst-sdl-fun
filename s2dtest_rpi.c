@@ -16,8 +16,8 @@ S2D_Image  *tick;
 S2D_Text   *txt_msg;
 S2D_Text   *gauge_text;
 
-const char *font = "media/UbuntuMono-R.ttf";
-// const char *font = "media/telegren.ttf";
+// const char *font = "media/UbuntuMono-R.ttf";
+const char *font = "media/telegren.ttf";
 
 VideoCap *video_cap;
 
@@ -29,12 +29,12 @@ void load () {
 	tick = S2D_CreateImage("media/tick.png");
 	gst_s2d_image = S2D_CreateEmptyImage(640,480);
 
-	txt_msg = S2D_CreateText(font, "Testando texto 1234! [/chdata]", 20);
+	txt_msg = S2D_CreateText(font, "Testando texto 1234! [/chdata]", 14);
 	// S2D_DrawTextShadow(txt_msg);
 	//  S2D_SetText(txt_msg, "abacate");
 
 	
-	gauge_text = S2D_CreateText(font, "11", 24);
+	gauge_text = S2D_CreateText(font, "11", 14);
 	
 	txt_msg->x = 50;
 	txt_msg->y = 50;
@@ -100,9 +100,9 @@ int main ( int argc, char **argv ) {
 	video_cap = new VideoCap(640,480);
 
 	S2D_Diagnostics(true);
-    window = S2D_CreateWindow("", 1280, 720, update, render, S2D_BORDERLESS);
+    window = S2D_CreateWindow("", 800, 480, update, render, S2D_BORDERLESS);
     window->viewport.mode = S2D_FIXED;
-    window->fps_cap = 30;
+    window->fps_cap = 60;
 	window->vsync = false;
 	S2D_ShowCursor();
 	
